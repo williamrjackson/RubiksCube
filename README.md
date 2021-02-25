@@ -1,2 +1,3 @@
 # RubiksCube
-Rubiks Cube in Unity
+Rubiks Cube in Unity    
+![Example](Rubiks.gif)    
