@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if NET_4_6
+using UnityEngine;
 using System.IO.Ports;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -199,3 +200,4 @@ namespace Wrj
         }
     }
 }
+#endif

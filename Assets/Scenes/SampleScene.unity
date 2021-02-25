@@ -5277,7 +5277,7 @@ Light:
   m_CookieSize: 10
   m_Shadows:
     m_Type: 1
-    m_Resolution: 3
+    m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 0.662
     m_Bias: 0
@@ -5315,7 +5315,8 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 4.14e-42, y: 1.04e-43, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 4.7019774e-38, y: 2.7105054e-20, z: 2.3509887e-38,
+    w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -10592,7 +10593,7 @@ PrefabInstance:
     - target: {fileID: 4052688644247665993, guid: 977f77626719acb40abc5590932aade7,
         type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4052688644629201228, guid: 977f77626719acb40abc5590932aade7,
         type: 3}
@@ -10607,7 +10608,12 @@ PrefabInstance:
     - target: {fileID: 4155526727981895915, guid: 977f77626719acb40abc5590932aade7,
         type: 3}
       propertyPath: m_Color.a
-      value: 0.39607844
+      value: 0.1764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 4155526727981895915, guid: 977f77626719acb40abc5590932aade7,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4261525041975226613, guid: 977f77626719acb40abc5590932aade7,
         type: 3}
