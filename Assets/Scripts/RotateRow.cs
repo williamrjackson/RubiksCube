@@ -44,7 +44,7 @@ public class RotateRow : MonoBehaviour
         CurrentMoveRoutine = StartCoroutine(DoMove(dir, duration));
     }
 
-    IEnumerator DoMove(float degrees, float duration)
+    IEnumerator DoMove(float degrees, float duration, bool addToStack = true)
     {
 
         foreach (SubCube subCube in SubCube.AllSubCubes)
@@ -111,6 +111,11 @@ public class RotateRow : MonoBehaviour
         foreach (SubCube subCube in SubCube.AllSubCubes)
         {
             subCube.Reparent();
+        }
+        if (addToStack)
+        {
+            var undo = new GameControl.UndoElement(DoMove, degrees * -1f);
+            GameControl.Instance.AddToUndoStack(undo);
         }
         CurrentMoveRoutine = null;
     }

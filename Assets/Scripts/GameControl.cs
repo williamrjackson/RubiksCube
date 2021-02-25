@@ -10,6 +10,7 @@ public class GameControl : MonoBehaviour
     public Transform flipAnchor;
     public RotateRow[] rotators;
 
+    private Stack<UndoElement> undoStack = new Stack<UndoElement>();
     private Coroutine RotateCubeRoutine;
 
     public bool Blocked
@@ -50,22 +51,22 @@ public class GameControl : MonoBehaviour
     public void RotateCube(bool left)
     {
         if (Blocked) return;
-        Vector3 target = (left) ? Vector3.zero.With(y: 90f) : Vector3.zero.With(y: -90f);
-        RotateCubeRoutine = StartCoroutine(TurnCube(target, turnDuration));
+        float target = (left) ? 90f : -90f;
+        RotateCubeRoutine = StartCoroutine(TurnCubeHoriz(target, turnDuration));
     }
     public void FlipCubeLeft(bool up)
     {
         if (Blocked) return;
-        Vector3 target = (up) ? Vector3.zero.With(x: 90f) : Vector3.zero.With(x: -90f);
-        RotateCubeRoutine = StartCoroutine(TurnCube(target, turnDuration));
+        float target = (up) ? 90f : -90f;
+        RotateCubeRoutine = StartCoroutine(TurnCubeLeftVert(target, turnDuration));
     }
     public void FlipCubeRight(bool up)
     {
         if (Blocked) return;
-        Vector3 target = (up) ? Vector3.zero.With(z: 90f) : Vector3.zero.With(z: -90f);
-        RotateCubeRoutine = StartCoroutine(TurnCube(target, turnDuration));
+        float target = (up) ? 90f : -90f;
+        RotateCubeRoutine = StartCoroutine(TurnCubeRightVert(target, turnDuration));
     }
-    private IEnumerator TurnCube(Vector3 targetRotation, float duration)
+    private IEnumerator TurnCubeHoriz(float targetRotation, float duration, bool addToStack = true)
     {
         flipAnchor.localEulerAngles = Vector3.zero;
         foreach (SubCube subCube in SubCube.AllSubCubes)
@@ -76,16 +77,121 @@ public class GameControl : MonoBehaviour
         while (elapsedTime <= duration)
         {
             elapsedTime += Time.deltaTime;
-            Vector3 updatedRot = Vector3.Lerp(Vector3.zero, targetRotation, Mathf.InverseLerp(0, duration, elapsedTime));
+            Vector3 updatedRot = Vector3.Lerp(Vector3.zero, Vector3.zero.With(y: targetRotation), Mathf.InverseLerp(0, duration, elapsedTime));
             flipAnchor.localEulerAngles = updatedRot;
             yield return new WaitForEndOfFrame();
         }
-        flipAnchor.localEulerAngles = targetRotation;
+        flipAnchor.localEulerAngles = Vector3.zero.With(y: targetRotation);
         foreach (SubCube subCube in SubCube.AllSubCubes)
         {
             subCube.Reparent();
         }
         flipAnchor.localEulerAngles = Vector3.zero;
+        if (addToStack)
+        {
+            AddToUndoStack(new UndoElement(TurnCubeHoriz, targetRotation * -1f));
+        }
         RotateCubeRoutine = null;
+    }
+
+    private IEnumerator TurnCubeLeftVert(float targetRotation, float duration, bool addToStack = true)
+    {
+        flipAnchor.localEulerAngles = Vector3.zero;
+        foreach (SubCube subCube in SubCube.AllSubCubes)
+        {
+            subCube.transform.parent = flipAnchor;
+        }
+        float elapsedTime = 0f;
+        while (elapsedTime <= duration)
+        {
+            elapsedTime += Time.deltaTime;
+            Vector3 updatedRot = Vector3.Lerp(Vector3.zero, Vector3.zero.With(x: targetRotation), Mathf.InverseLerp(0, duration, elapsedTime));
+            flipAnchor.localEulerAngles = updatedRot;
+            yield return new WaitForEndOfFrame();
+        }
+        flipAnchor.localEulerAngles = Vector3.zero.With(x: targetRotation);
+        foreach (SubCube subCube in SubCube.AllSubCubes)
+        {
+            subCube.Reparent();
+        }
+        flipAnchor.localEulerAngles = Vector3.zero;
+        if (addToStack)
+        {
+            AddToUndoStack(new UndoElement(TurnCubeLeftVert, targetRotation * -1f));
+        }
+        RotateCubeRoutine = null;
+    }
+
+    private IEnumerator TurnCubeRightVert(float targetRotation, float duration, bool addToStack = true)
+    {
+        flipAnchor.localEulerAngles = Vector3.zero;
+        foreach (SubCube subCube in SubCube.AllSubCubes)
+        {
+            subCube.transform.parent = flipAnchor;
+        }
+        float elapsedTime = 0f;
+        while (elapsedTime <= duration)
+        {
+            elapsedTime += Time.deltaTime;
+            Vector3 updatedRot = Vector3.Lerp(Vector3.zero, Vector3.zero.With(z: targetRotation), Mathf.InverseLerp(0, duration, elapsedTime));
+            flipAnchor.localEulerAngles = updatedRot;
+            yield return new WaitForEndOfFrame();
+        }
+        flipAnchor.localEulerAngles = Vector3.zero.With(z: targetRotation);
+        foreach (SubCube subCube in SubCube.AllSubCubes)
+        {
+            subCube.Reparent();
+        }
+        flipAnchor.localEulerAngles = Vector3.zero;
+        if (addToStack)
+        {
+            AddToUndoStack(new UndoElement(TurnCubeRightVert, targetRotation * -1f));
+        }
+        RotateCubeRoutine = null;
+    }
+
+    public void AddToUndoStack(UndoElement undoElement)
+    {
+        undoStack.Push(undoElement);
+    }
+    public void Undo()
+    {
+        if (Blocked) return;
+        if (undoStack.Count > 0)
+        {
+            UndoElement undo = undoStack.Pop();
+            StartCoroutine(undo.undoCommand(undo.angle, turnDuration, false));
+        }
+    }
+
+    public void Reset()
+    {
+
+        if (Blocked) return;
+        RotateCubeRoutine = StartCoroutine(ResetRoutine());
+    }
+
+    private IEnumerator ResetRoutine()
+    {
+        int stackCount = undoStack.Count;
+        for (int i = 0; i < stackCount; i++)
+        {
+            UndoElement undo = undoStack.Pop();
+            yield return StartCoroutine(undo.undoCommand(undo.angle, .1f, false));
+        }
+        RotateCubeRoutine = null;
+    }
+
+    public class UndoElement
+    {
+        public delegate IEnumerator UndoCommand(float angle, float duration, bool addToStack);
+        public UndoCommand undoCommand;
+        public float angle;
+
+        public UndoElement(UndoCommand undoCommand, float angle)
+        {
+            this.undoCommand = undoCommand;
+            this.angle = angle;
+        }
     }
 }
