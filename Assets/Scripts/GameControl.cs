@@ -34,7 +34,8 @@ public class GameControl : MonoBehaviour
 
     public void Shuffle()
     {
-        StartCoroutine(ShuffleRoutine());
+        if (Blocked) return;
+        RotateCubeRoutine = StartCoroutine(ShuffleRoutine());
     }
 
     private IEnumerator ShuffleRoutine()
@@ -43,6 +44,7 @@ public class GameControl : MonoBehaviour
         {
             yield return StartCoroutine(rotators.GetRandom().MoveRandom(.1f));
         }
+        RotateCubeRoutine = null;
     }
 
     public void RotateCube(bool left)
