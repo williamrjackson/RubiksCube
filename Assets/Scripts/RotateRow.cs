@@ -10,15 +10,10 @@ public class RotateRow : MonoBehaviour
     public RowCondition rowCondition;
     private static Coroutine CurrentMoveRoutine;
     public static bool IsMoving => CurrentMoveRoutine != null;
-    private BoxCollider m_collider = null;
 
-    private void Start()
-    {
-        m_collider = GetComponent<BoxCollider>();
-    }
     public void RotateLeft()
     {
-        if (CurrentMoveRoutine != null)
+        if (GameControl.Instance.Blocked)
         {
             return;
         }
@@ -26,7 +21,7 @@ public class RotateRow : MonoBehaviour
     }
     public void RotateRight()
     {
-        if (CurrentMoveRoutine != null)
+        if (GameControl.Instance.Blocked)
         {
             return;
         }
@@ -46,7 +41,6 @@ public class RotateRow : MonoBehaviour
 
     IEnumerator DoMove(float degrees, float duration, bool addToStack = true)
     {
-
         foreach (SubCube subCube in SubCube.AllSubCubes)
         {
             bool isApplicable = false;

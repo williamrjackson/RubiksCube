@@ -7,9 +7,11 @@ public class GameControl : MonoBehaviour
     [Range(0f, 1f)]
     public float turnDuration = .25f;
     public int shuffleMoveCount = 25;
+    public ParticleSystem celebrationParticles;
     public Transform flipAnchor;
     public RotateRow[] rotators;
 
+    private bool checkForWin = false;
     private Stack<UndoElement> undoStack = new Stack<UndoElement>();
     private Coroutine RotateCubeRoutine;
 
@@ -45,6 +47,7 @@ public class GameControl : MonoBehaviour
         {
             yield return StartCoroutine(rotators.GetRandom().MoveRandom(.1f));
         }
+        checkForWin = true;
         RotateCubeRoutine = null;
     }
 
@@ -153,7 +156,17 @@ public class GameControl : MonoBehaviour
     public void AddToUndoStack(UndoElement undoElement)
     {
         undoStack.Push(undoElement);
+        if (checkForWin)
+        {
+            if (Face.IsWinState)
+            {
+                Debug.Log("Win!");
+                celebrationParticles.Play();
+                checkForWin = false;
+            }
+        }
     }
+
     public void Undo()
     {
         if (Blocked) return;
@@ -161,6 +174,10 @@ public class GameControl : MonoBehaviour
         {
             UndoElement undo = undoStack.Pop();
             StartCoroutine(undo.undoCommand(undo.angle, turnDuration, false));
+        }
+        else
+        {
+            checkForWin = false;
         }
     }
 
@@ -180,6 +197,7 @@ public class GameControl : MonoBehaviour
             yield return StartCoroutine(undo.undoCommand(undo.angle, .1f, false));
         }
         RotateCubeRoutine = null;
+        checkForWin = false;
     }
 
     public class UndoElement
