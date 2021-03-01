@@ -167,23 +167,35 @@ public class GameControl : MonoBehaviour
         }
     }
 
+    int UndoClickCount = 0;
+    Coroutine undoRoutine = null;
     public void Undo()
     {
-        if (Blocked) return;
-        if (undoStack.Count > 0)
+        UndoClickCount++;
+        if (undoRoutine == null)
+        {
+            undoRoutine = StartCoroutine(ExecuteUndo());
+        }
+    }
+
+    private IEnumerator ExecuteUndo()
+    {
+        if (Blocked) yield break;
+        while ((undoStack.Count > 0) && (UndoClickCount > 0))
         {
             UndoElement undo = undoStack.Pop();
-            StartCoroutine(undo.undoCommand(undo.angle, turnDuration, false));
+            UndoClickCount--;
+            yield return StartCoroutine(undo.undoCommand(undo.angle, turnDuration, false));
         }
-        else
+        if (undoStack.Count == 0)
         {
             checkForWin = false;
         }
+        undoRoutine = null;
     }
 
     public void Reset()
     {
-
         if (Blocked) return;
         RotateCubeRoutine = StartCoroutine(ResetRoutine());
     }
@@ -194,7 +206,7 @@ public class GameControl : MonoBehaviour
         for (int i = 0; i < stackCount; i++)
         {
             UndoElement undo = undoStack.Pop();
-            yield return StartCoroutine(undo.undoCommand(undo.angle, .1f, false));
+            yield return RotateCubeRoutine = StartCoroutine(undo.undoCommand(undo.angle, .1f, false));
         }
         RotateCubeRoutine = null;
         checkForWin = false;

@@ -8,6 +8,7 @@ public class RotateRow : MonoBehaviour
     public enum RowCondition { xNeg1, xZero, xPos1, yNeg1, yZero, yPos1, zNeg1, zZero, zPos1 }
     public FacingDirection facingDirection;
     public RowCondition rowCondition;
+    public Wrj.RandomizedSoundEffect soundEffects;
     private static Coroutine CurrentMoveRoutine;
     public static bool IsMoving => CurrentMoveRoutine != null;
 
@@ -41,6 +42,7 @@ public class RotateRow : MonoBehaviour
 
     IEnumerator DoMove(float degrees, float duration, bool addToStack = true)
     {
+        soundEffects.PlayRandom(.9f, 1.1f, .9f, 1.1f);
         foreach (SubCube subCube in SubCube.AllSubCubes)
         {
             bool isApplicable = false;
